@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,14 +14,16 @@ use App\Http\Controllers\CompanyController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('/', [CompanyController::class, 'index'])->name('companies.list');
-Route::post('/add-company', [CompanyController::class, 'addCompany'])->name('add.company');
-Route::get('/getCompanyList', [CompanyController::class, 'getCompaniesList'])->name('get.companies.list');
-Route::post('/getCompanyDetails', [CompanyController::class, 'getCompanyDetails'])->name('get.company.details');
-Route::post('/updateCompanyDetails', [CompanyController::class, 'updateCompanyDetails'])->name('update.company.details');
-Route::post('/deleteCompanies', [CompanyController::class, 'deleteCompany'])->name('delete.company');
-Route::post('/deleteSelectedCompanies', [CompanyController::class, 'deleteSelectedCompanies'])->name('delete.selected.companies');
+Route::get('/', [ItemController::class, 'index'])->name('items.list');
+Route::get('/add-item', [ItemController::class, 'addItemNew'])->name('item.add');
+Route::post('/add-item', [ItemController::class, 'addItem'])->name('add.item');
+Route::get('/getItemList', [ItemController::class, 'getItemsList'])->name('get.items.list');
+
+Route::post('/getItemDetails', [ItemController::class, 'getItemDetails'])->name('get.item.details');
+Route::post('/updateItemDetails', [ItemController::class, 'updateItemDetails'])->name('update.item.details');
+Route::post('/deleteItem', [ItemController::class, 'deleteItem'])->name('delete.item');
+Route::post('/deleteSelectedItems', [ItemController::class, 'deleteSelectedItems'])->name('delete.selected.items');

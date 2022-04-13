@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company List</title>
+    <title>Item List</title>
     <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('datatable/css/dataTables.bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('datatable/css/dataTables.bootstrap4.min.css') }}">
@@ -14,20 +14,24 @@
 </head>
 <body>
     <div class="container">
-          <div class="row" style="margin-top: 45px">
-              <div class="col-md-8">
+        <div class="col-md-12" style="margin-top: 20px; float:center"><a href="{{ route('item.add') }}">Add Item</a> | <a href="{{ route('items.list') }}">View Item</a></div>
+          <div class="row" style="margin-top: 30px">
+              <div class="col-md-12">
 
                 {{-- <input type="text" name="searchfor" id="" class="form-control"> --}}
                     <div class="card">
-                        <div class="card-header">Companies</div>
+                        <div class="card-header"><button class="btn btn-sm btn-primary" data-id="" id="addCompanyBtn">Update Qty</button></div>
                         <div class="card-body">
                             <table class="table table-hover table-condensed" id="companies-table">
                                 <thead>
                                     <th><input type="checkbox" name="main_checkbox"><label></label></th>
                                     <th>#</th>
-                                    <th>Trading name</th>
-                                    <th>ABN</th>
-                                    <th>Status</th>
+                                    <th>Name</th>
+                                    <th>Brand</th>
+                                    <th>Qty</th>
+                                    <th>Buying Price</th>
+                                    <th>Profit Margin</th>
+                                    <th>Selling Price</th>
                                     <th>Actions <button class="btn btn-sm btn-danger d-none" id="deleteAllBtn">Delete All</button></th>
                                 </thead>
                                 <tbody></tbody>
@@ -35,61 +39,10 @@
                         </div>
                     </div>
               </div>
-              <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">Add new Company</div>
-                        <div class="card-body">
-                            @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-                            <form action="{{ route('add.company') }}" method="post" id="add-company-form" autocomplete="off">
-                                @csrf
-                                <div class="form-group">
-                                    <label for="">Trading Name</label>
-                                    <input type="text" class="form-control" name="trading_name" placeholder="Enter Trading name">
-                                    <span class="text-danger error-text trading_name_error"></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Company Name</label>
-                                    <input type="text" class="form-control" name="company_name" placeholder="Enter Company Name">
-                                    <span class="text-danger error-text company_name_error"></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">ABN</label>
-                                    <input type="text" class="form-control" name="abn" placeholder="Enter ABN"><small>ABN number lookup we need to have SOAP integration to verify the number. POST https://abr.business.gov.au/ABRXMLSearch/AbrXmlSearch.asmx HTTP/1.1</small>
-                                    <span class="text-danger error-text abn_error"></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Address</label>
-                                    <textarea class="form-control" name="address" placeholder="Enter address"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Email</label>
-                                    <input type="email" class="form-control" name="email" placeholder="Enter Email"><small>Format: example@example.com</small>
-                                    <span class="text-danger error-text email_error"></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Phone</label>
-                                    <input type="phone" class="form-control" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="Enter Phone #"><small>Format: 123-456-7890</small>
-                                    <span class="text-danger error-text phone_error"></span>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-block btn-success">SAVE</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-              </div>
           </div>
 
     </div>
-    @include('edit-company-modal')
+    @include('edit-item-modal')
     <script src="{{ asset('jquery/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -143,15 +96,18 @@
                var table =  $('#companies-table').DataTable({
                      processing:true,
                      info:true,
-                     ajax:"{{ route('get.companies.list') }}",
-                     "pageLength":5,
+                     ajax:"{{ route('get.items.list') }}",
+                     "pageLength":50,
                      "aLengthMenu":[[5,10,25,50,-1],[5,10,25,50,"All"]],
                      columns:[
                          {data:'checkbox', name:'checkbox', orderable:false, searchable:false},
                          {data:'DT_RowIndex', name:'DT_RowIndex'},
-                         {data:'trading_name', name:'trading_name'},
-                         {data:'abn', name:'abn'},
-                         {data:'status', name:'status'},
+                         {data:'name', name:'name'},
+                         {data:'brand', name:'brand'},
+                         {data:'qty', name:'qty'},
+                         {data:'buying_price', name:'buying_price'},
+                         {data:'profit_margin', name:'profit_margin'},
+                         {data:'selling_price', name:'selling_price'},
                          {data:'actions', name:'actions', orderable:false, searchable:false},
                      ]
                 }).on('draw', function(){
@@ -161,22 +117,24 @@
                 });
 
                 $(document).on('click','#editCompanyBtn', function(){
-                    var company_id = $(this).data('id');
+                    var id = $(this).data('id');
                     $('.editCompany').find('form')[0].reset();
                     $('.editCompany').find('span.error-text').text('');
-                    $.post('<?= route("get.company.details") ?>',{company_id:company_id}, function(data){
+                    $.post('<?= route("get.item.details") ?>',{id:id}, function(data){
                         //  alert(data.details.country_name);
-                        $('.editCompany').find('input[name="cid"]').val(data.details.id);
-                        $('.editCompany').find('input[name="trading_name"]').val(data.details.trading_name);
-                        $('.editCompany').find('input[name="company_name"]').val(data.details.company_name);
-                        $('.editCompany').find('input[name="abn"]').val(data.details.abn);
-                        $('.editCompany').find('input[name="address"]').val(data.details.address);
-                        $('.editCompany').find('input[name="email"]').val(data.details.email);
-                        $('.editCompany').find('input[name="phone"]').val(data.details.phone);
+                        $('.editCompany').find('input[name="id"]').val(data.details.id);
+                        $('.editCompany').find('input[name="name"]').val(data.details.name);
+                        $('.editCompany').find('input[name="brand"]').val(data.details.brand);
+                        $('.editCompany').find('input[name="qty"]').val(data.details.qty);
+                        $('.editCompany').find('input[name="buying_price"]').val(data.details.buying_price);
+                        $('.editCompany').find('input[name="profit_margin"]').val(data.details.profit_margin);
+                        $('.editCompany').find('input[name="selling_price"]').val(data.details.selling_price);
+                        $('.editCompany').find('input[name="warranty"]').val(data.details.warranty);
+                        $('.editCompany').find('input[name="expiry_date"]').val(data.details.expiry_date);
+                        $('.editCompany').find('input[name="status"]').val(data.details.status);
                         $('.editCompany').modal('show');
                     },'json');
                 });
-
 
                 //UPDATE COUNTRY DETAILS
                 $('#update-company-form').on('submit', function(e){
@@ -209,12 +167,12 @@
 
                 //DELETE COMPANY RECORD
                 $(document).on('click','#deleteCompanyBtn', function(){
-                    var company_id = $(this).data('id');
-                    var url = '<?= route("delete.company") ?>';
+                    var id = $(this).data('id');
+                    var url = '<?= route("delete.item") ?>';
 
                     swal.fire({
                          title:'Are you sure?',
-                         html:'You want to <b>delete</b> this company',
+                         html:'You want to <b>delete</b> this item',
                          showCancelButton:true,
                          showCloseButton:true,
                          cancelButtonText:'Cancel',
@@ -225,7 +183,7 @@
                          allowOutsideClick:false
                     }).then(function(result){
                           if(result.value){
-                              $.post(url,{company_id:company_id}, function(data){
+                              $.post(url,{id:id}, function(data){
                                    if(data.code == 1){
                                        $('#companies-table').DataTable().ajax.reload(null, false);
                                        toastr.success(data.msg);
@@ -237,9 +195,6 @@
                     });
 
                 });
-
-
-
 
            $(document).on('click','input[name="main_checkbox"]', function(){
                   if(this.checked){
@@ -280,7 +235,7 @@
                    checkedCompanies.push($(this).data('id'));
                });
 
-               var url = '{{ route("delete.selected.companies") }}';
+               var url = '{{ route("delete.selected.items") }}';
                if(checkedCompanies.length > 0){
                    swal.fire({
                        title:'Are you sure?',
